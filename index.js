@@ -54,6 +54,7 @@ async function run() {
         //database collection
         const usersCollection = client.db("time2draw").collection("users")
         const instructorsCollection = client.db("time2draw").collection("instructors")
+        const classesCollection = client.db("time2draw").collection("classes")
 
 
         //JWT GENERATION...
@@ -91,6 +92,19 @@ async function run() {
             const result = await usersCollection.find().toArray()
             res.send(result)
         })
+
+        app.get("/classes", async(req, res)=>{
+            
+            try{
+                const result = await classesCollection.find().toArray()
+            res.send(result)
+            }
+            catch{
+                err=> res.send(404)
+            }
+
+         
+     })
 
         app.get("/instructors", async(req, res)=>{
             
