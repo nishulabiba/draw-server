@@ -93,14 +93,11 @@ async function run() {
         })
 
         app.get("/instructors", async(req, res)=>{
-            try{
+            
                const result = await instructorsCollection.find().toArray()
                res.send(result)
 
-            }
-            catch{
-                err=> console.log(err);
-            }
+            
         })
 
         // Connect the client to the server	(optional starting in v4.7)
