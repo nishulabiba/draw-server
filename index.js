@@ -96,11 +96,23 @@ async function run() {
         app.get("/classes", async(req, res)=>{
             
             try{
-                const result = await classesCollection.find().toArray()
+                const pipeline = [
+                    // Project a new field "totalStudents" which is the sum of "totalStudents" only
+                    {
+                      $addFields: {
+                        totalStudents: "$totalStudents"
+                      }
+                    },
+                    // Sort the documents based on the "totalStudents" field in ascending order
+                    {
+                      $sort: { totalStudents: 1 }
+                    }
+                  ];
+                const result = await classesCollection.aggregate(pipeline).toArray()
             res.send(result)
             }
             catch{
-                err=> res.send(404)
+                err=> res.send("classes are not found")
             }
 
          
