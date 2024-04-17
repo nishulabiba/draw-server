@@ -13,26 +13,26 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json())
 // middlewares 
- const verifyJwt = (req, res, next) => {
-   const authorization = req.headers.authorization || req.headers.Authorization;
-   
+const verifyJwt = (req, res, next) => {
+    const authorization = req.headers.authorization || req.headers.Authorization;
 
- if (!authorization) {
-    console.log('No Authorization Header');
-    return res.status(401).send({ message: 'unauthorized access' });
-  }
 
- const token = authorization.split(' ')[1];
- jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-   if (err) {
-     console.error('JWT Verification Error:', err);
-     return res.status(401).send({ message: 'unauthorized access' });
-   } else {
-     req.decoded = decoded;
-     next();
-   }
-   })
- };
+    if (!authorization) {
+        console.log('No Authorization Header');
+        return res.status(401).send({ message: 'unauthorized access' });
+    }
+
+    const token = authorization.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            console.error('JWT Verification Error:', err);
+            return res.status(401).send({ message: 'unauthorized access' });
+        } else {
+            req.decoded = decoded;
+            next();
+        }
+    })
+};
 
 
 //mongodb connect
@@ -81,7 +81,7 @@ async function run() {
             }
         })
         app.get("/users", verifyJwt, async (req, res) => {
-           
+
             //  const user = await usersCollection.findOne(query)
             //  //security level : check admin role
             //  const admin = {admin: user?.role === 'admin' }
@@ -93,32 +93,25 @@ async function run() {
             res.send(result)
         })
 
-        app.get("/classes", async(req, res)=>{
-            
-            try{
-                const pipeline = [
-                    
-                    // Sort the documents based on the "totalStudents" field in ascending order
-                    {
-                      $sort: { totalStudents: 1 }
-                    }
-                  ];
-                const result = await classesCollection.aggregate(pipeline).toArray()
+        app.get("/classes", async (req, res) => {
+
+            try {
+                const result = await classesCollection.find().sort({ totalStudents: 1 })
+                res.send(result)
+            }
+            catch {
+                err => res.send("classes are not found")
+            }
+
+
+        })
+
+        app.get("/instructors", async (req, res) => {
+
+            const result = await instructorsCollection.find().toArray()
             res.send(result)
-            }
-            catch{
-                err=> res.send("classes are not found")
-            }
 
-         
-     })
 
-        app.get("/instructors", async(req, res)=>{
-            
-               const result = await instructorsCollection.find().toArray()
-               res.send(result)
-
-            
         })
 
         // Connect the client to the server	(optional starting in v4.7)
