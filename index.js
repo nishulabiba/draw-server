@@ -97,12 +97,7 @@ async function run() {
             
             try{
                 const pipeline = [
-                    // Project a new field "totalStudents" which is the sum of "totalStudents" only
-                    {
-                      $addFields: {
-                        totalStudents: "$totalStudents"
-                      }
-                    },
+                    
                     // Sort the documents based on the "totalStudents" field in ascending order
                     {
                       $sort: { totalStudents: 1 }
