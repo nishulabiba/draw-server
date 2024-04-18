@@ -93,14 +93,17 @@ async function run() {
             res.send(result)
         })
 
+
         app.get("/classes", async (req, res) => {
 
             try {
-                const result = await classesCollection.find().sort({ totalStudents: 1 })
-                res.send(result)
+                const result = await classesCollection.find().sort({ totalStudents: -1 }).toArray()
+
+                res.send(result);
             }
-            catch {
-                err => res.send("classes are not found")
+            catch (err) {
+                console.error("Error fetching classes:", err);
+                res.status(500).send("An error occurred while fetching classes");
             }
 
 
@@ -113,6 +116,45 @@ async function run() {
 
 
         })
+        app.get("/popularInstructors", async (req, res) => {
+            try {
+                const instructors = await instructorsCollection.find().toArray()
+
+                const pipeline = [
+                    // Group by instructorName and calculate the totalStudents for each instructor
+                    {
+                        $group: {
+                            _id: "$instructorName",
+                            totalStudents: { $sum: "$totalStudents" }
+                        }
+                    },
+                    // Sort the instructors based on totalStudents in descending order
+                    { $sort: { totalStudents: -1 } }
+                ];
+
+                // Execute the aggregation pipeline on the "classes" collection
+                const result = await classesCollection.aggregate(pipeline).toArray();
+                        // Create a map to store the totalStudents for each instructor
+        const totalStudentsMap = {};
+        result.forEach(instructor => {
+            totalStudentsMap[instructor._id] = instructor.totalStudents;
+        });
+
+        // Map the instructors found in the aggregation result to their respective documents
+        const instructorsWithTotalStudents = instructors.map(instructor => ({
+            ...instructor,
+            totalStudents: totalStudentsMap[instructor.Name] || 0 // Set totalStudents to 0 if instructor is not found in the result
+        }));
+
+        // Sort the instructors based on their total students in descending order
+        instructorsWithTotalStudents.sort((a, b) => b.totalStudents - a.totalStudents);
+
+        res.send(instructorsWithTotalStudents);
+            } catch (err) {
+                console.error("Error fetching popular instructors:", err);
+                res.status(500).send("An error occurred while fetching popular instructors");
+            }
+        });
 
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
