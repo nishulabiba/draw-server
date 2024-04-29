@@ -156,6 +156,19 @@ async function run() {
             }
         });
 
+        app.get("/instructorClasses/:id",  async(req, res)=>{
+            const id = req.params;
+            const instructors = await instructorsCollection.find().toArray();
+            const classes = await classesCollection.find().toArray();
+            const instructor = instructors.find(i=> i._id = id)
+            const {ClassNames} = instructor;
+            const filteredClasses= classes.filter(i=> {ClassNames.find(t=> t== i.name)})
+            res.send(filteredClasses)
+
+
+
+        })
+
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
         // Send a ping to confirm a successful connection
