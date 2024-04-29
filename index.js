@@ -156,18 +156,40 @@ async function run() {
             }
         });
 
-        app.get("/instructorClasses/:id",  async(req, res)=>{
-            const id = req.params;
+        app.get("/instructorClasses/:name", async (req, res) => {
+            const name = req.params.name; // Access id from req.params
+
+
+            
+            
+
             const instructors = await instructorsCollection.find().toArray();
             const classes = await classesCollection.find().toArray();
-            const instructor = instructors.find(i=> i._id = id)
-            const {ClassNames} = instructor;
-            const filteredClasses= classes.filter(i=> {ClassNames.find(t=> t== i.name)})
-            res.send(filteredClasses)
-
-
-
-        })
+            const instructor = instructors.find(i=> i.Name===name)
+            console.log(instructor);
+           
+        
+            if (!instructor) {
+                // Handle the case when instructor is not found
+                return res.status(404).send('Instructor not found');
+            }
+        
+            if (!instructor.ClassNames) {
+                // Handle the case when ClassNames is not defined in the instructor object
+                return res.status(500).send('ClassNames not defined for the instructor');
+            }
+        
+            const { ClassNames } = instructor;
+        
+            // Filter classes based on instructor's ClassNames
+            const filteredClasses = classes.filter(i => ClassNames.includes(i.name));
+            console.log(ClassNames);
+            
+        
+            res.send(filteredClasses);
+        });
+        
+        
 
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
